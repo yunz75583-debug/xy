@@ -110,6 +110,11 @@ async def stream_chat(message: str, session_id: Optional[str]):
     yield sse_event({"type": "done", "session_id": latest_session_id})
 
 
+@app.get("/xy-health")
+async def health():
+    return {"app": "xy-backend"}
+
+
 @app.post("/chat")
 async def chat(req: ChatRequest):
     return StreamingResponse(
