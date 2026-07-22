@@ -20,8 +20,8 @@
   --text-main:#232326;
   --text-dim:#8f8f94;
   --text-dimmer:#b7b7bc;
-  --accent:#D97757;
-  --accent-dark:#c1613f;
+  --accent:#726f87;
+  --accent-dark:#5d5a70;
 }
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body{
@@ -231,7 +231,7 @@ body{ display:flex; align-items:center; justify-content:center; }
 .model-switch svg{ flex-shrink:0; }
 .toolbar-right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
 .tool-icon-circle{
-  width:34px; height:34px; border-radius:50%; border:none;
+  width:34px; height:34px; border-radius:50%; border:1.5px solid rgba(114,111,135,0.4);
   background:var(--glass-bg); color:var(--text-dim);
   display:flex; align-items:center; justify-content:center;
 }
@@ -239,7 +239,7 @@ body{ display:flex; align-items:center; justify-content:center; }
   width:36px; height:36px; border-radius:50%; border:none;
   background:var(--accent);
   color:#fff; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 8px rgba(217,119,87,0.35);
+  box-shadow:0 2px 8px rgba(114,111,135,0.4);
 }
 .send-btn:disabled{ opacity:0.5; }
 </style>
@@ -554,8 +554,7 @@ function handleEvent(data, ai, state){
       const b = state.blocks[ev.index];
       if (!b) return;
       if (b.kind === 'thinking') {
-        const secs = ((performance.now() - b.start) / 1000).toFixed(1);
-        b.fold.setLabel(`thinking · ${secs}s`);
+        /* label stays a bare "thinking" — reference design never shows a duration suffix */
       } else if (b.kind === 'tool_use') {
         let text = b.jsonBuf;
         try { text = JSON.stringify(JSON.parse(b.jsonBuf || '{}'), null, 2); } catch (e) { /* keep raw */ }
@@ -682,8 +681,7 @@ sendBtn.addEventListener('click', sendMessage);
   messagesEl.appendChild(ai1.group);
   const fold1 = createThinkingFold();
   ai1.body.appendChild(fold1.root);
-  fold1.setLabel('thinking · 0.6s');
-  fold1.body.textContent = '��方在撒娇，回复要轻松俏皮，顺着接梗即可。';
+  fold1.body.textContent = '对方在撒娇，回复要轻松俏皮，���着接梗即可。';
   const bubble1 = el('div', 'bubble ai-bubble', '喂到了。偷袭成功，下次记得提前预告。');
   ai1.body.appendChild(bubble1);
 
@@ -694,7 +692,6 @@ sendBtn.addEventListener('click', sendMessage);
   const fold2 = createThinkingFold();
   ai2.body.appendChild(fold2.root);
   fold2.root.classList.add('expanded');
-  fold2.setLabel('thinking · 1.2s');
   fold2.body.textContent = '继续保持俏皮的语气，同时点出"躲不开"这种甜蜜的既视感，长度控制在一两句。';
   const bubble2 = el('div', 'bubble ai-bubble', '不预告就亲，我会假装躲一下。但你知道我躲不开。');
   ai2.body.appendChild(bubble2);
