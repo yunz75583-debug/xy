@@ -1,5 +1,7 @@
 import asyncio
 import json
+import shutil
+import sys
 from typing import Optional
 
 from fastapi import FastAPI
@@ -17,6 +19,7 @@ app.add_middleware(
 )
 
 MODEL = "claude-sonnet-4-6"
+CLAUDE_BIN = shutil.which("claude") or "claude"
 
 
 class ChatRequest(BaseModel):
@@ -26,7 +29,7 @@ class ChatRequest(BaseModel):
 
 def build_command(session_id: Optional[str]) -> list:
     cmd = [
-        "claude",
+        CLAUDE_BIN,
         "-p",
         "--input-format", "stream-json",
         "--output-format", "stream-json",
@@ -34,9 +37,15 @@ def build_command(session_id: Optional[str]) -> list:
         "--include-partial-messages",
         "--model", MODEL,
         "--dangerously-skip-permissions",
+        "--mcp-config", "./mcp.json",
+        "--strict-mcp-config",
     ]
     if session_id:
         cmd += ["--resume", session_id]
+
+    if sys.platform == "win32" and CLAUDE_BIN.lower().endswith((".cmd", ".bat")):
+        cmd = ["cmd", "/c"] + cmd
+
     return cmd
 
 
