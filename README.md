@@ -15,12 +15,32 @@ pip install -r ../requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
+如果本机 8000 端口被系统占用（Windows 上偶尔会遇到，`bind` 报 10048），换个端口即可，比如 `--port 8001`，前端的 `API_URL` 跟着改一下。
+
 后端只有一个接口 `POST /chat`：
 
 - 请求体：`{"message": "你好", "session_id": null}`
-- 内部会启动 `claude -p --input-format stream-json --output-format stream-json --verbose --include-partial-messages --model claude-sonnet-4-6 --dangerously-skip-permissions` 子进程
+- 内部会启动 `claude -p --input-format stream-json --output-format stream-json --verbose --include-partial-messages --model claude-sonnet-4-6 --dangerously-skip-permissions --mcp-config ./mcp.json --strict-mcp-config` 子进程
 - 如果 `session_id` 不为空，会额外带上 `--resume <session_id>` 复用会话
 - 响应是 SSE（`text/event-stream`），把 claude 子进程 stdout 的每一行 JSON 原样转发，最后追加一条 `{"type": "done", "session_id": "..."}`
+- Windows 上 `claude` 命令实际是 `.cmd` 脚本，Python 的 `create_subprocess_exec` 不会像 shell 那样自动解析 `PATHEXT`，所以代码里会在 Windows 上自动套一层 `cmd /c` 来启动它
+
+## MCP
+
+`backend/mcp.json` 配了一个外部 MCP 服务 `ombre-brain`：
+
+```json
+{
+  "mcpServers": {
+    "ombre-brain": {
+      "type": "http",
+      "url": "https://ombre.nuojiji.site/mcp"
+    }
+  }
+}
+```
+
+注意 `type` 是 `"http"`（streamable HTTP transport），不是 `"sse"`——这个服务的 `/mcp` 端点走的是单个 POST 端点的新版协议，不是老式「GET 建流 + POST 发消息」的 SSE transport，配成 `sse` 会连不上（`mcp_servers` 里 `status` 一直是 `pending`/`failed`）。
 
 ## 前端
 
